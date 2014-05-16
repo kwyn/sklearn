@@ -20,7 +20,7 @@ def make_requests(pages):
   print r.text
   r = requests.get(apiurl+'/documents/1')
   print 'document 1', r.text
-  # r = requests.get(apiurl+'/documents')
-  # print 'document list' , r.text
+  r = requests.get(apiurl+'/documents')
+  print 'document list' , r.text
 
 make_requests(pages)

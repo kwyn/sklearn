@@ -39,9 +39,13 @@ class InvalidUsage(Exception):
         return rv
 
 def add_documents(documents):
-    storage = open('corpus.pkl', 'rb')
-    corpus = pickle.load(storage)
-    storage.close()
+    try:
+        storage = open('corpus.pkl', 'rb')
+        corpus = pickle.load(storage)
+        storage.close()
+    except:
+        corpus = list()
+        pass
     doc_list = list()
     storage = open('corpus.pkl', 'wb')
     for document in documents:
@@ -64,6 +68,7 @@ def make_document_list():
 def get_document(document_id):
     storage = open('corpus.pkl', 'rb')
     corpus = pickle.load(storage)
+    storage.close()
     for document in corpus:
         if document['doc_id'] == document_id :
             return document
