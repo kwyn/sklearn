@@ -19,7 +19,6 @@ app = Flask(__name__)
 
 # tfidf = TfidfVectorizer(stop_words='english')
 
-
 #########################################################################
 #Helper methods
 #########################################################################
@@ -109,8 +108,7 @@ def get_document_list():
         document_ids = add_documents( request.json['documents'] )
         return jsonify( { 'document_ids': document_ids } )
     elif request.method == 'GET' :
-        doclist = make_document_list()
-        return jsonify( { 'document_ids': doclist } )
+        return jsonify( { 'document_ids': make_document_list() } )
 
 
 @app.route('/documents/<document_id>', methods = ['GET', 'DELETE'])
