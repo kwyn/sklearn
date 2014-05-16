@@ -18,9 +18,9 @@ def make_requests(pages):
   #print payload
   r = requests.post(apiurl+'/documents', data=json.dumps(payload), headers=headers)
   print r.text
-  r = requests.get(apiurl+'/documents/doc_1')
+  r = requests.get(apiurl+'/documents/1')
   print 'document 1', r.text
-  r = requests.get(apiurl+'/documents')
-  print 'document list' , r.text
+  # r = requests.get(apiurl+'/documents')
+  # print 'document list' , r.text
 
 make_requests(pages)

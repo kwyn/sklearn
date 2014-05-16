@@ -61,9 +61,14 @@ def make_document_list():
     storage.close()
     return results
 
-def get_document():
+def get_document(document_id):
+    storage = open('corpus.pkl', 'rb')
     corpus = pickle.load(storage)
-    return corpus
+    for document in corpus:
+        if document['doc_id'] == document_id :
+            return document
+        else :
+            raise InvalidUsage("Document not found", status_code=404)
 
 # def train():
 #     storage = open('corpus.pkl', 'rb')
@@ -114,7 +119,7 @@ def get_document_list():
 @app.route('/documents/<document_id>', methods = ['GET', 'DELETE'])
 def documents(document_id):
     if request.method == 'GET' :
-        return jsonify( { 'document_id_placeholder': document_id } )
+        return jsonify( { 'document_id_placeholder':  get_document(document_id) } )
     elif request.method == 'DELETE' :
         return jsonify( { 'document_id_placeholder': document_id } )
 
