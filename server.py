@@ -104,14 +104,12 @@ def get_similar(doc_id = None, doc_body = None):
     elif doc_body is not None :
         matrix = train()
         doc_vect = tfidf.transform(doc_body)
-    print doc_vect
     results = cosine_similarity(matrix, doc_vect)
-    print 'Similarity matix', results
     document_array = np.array( get_doc_ids(), np.int32)[np.newaxis]
     document_array = document_array.T
     results = np.append(document_array, results, 1)
-    results = np.sort(results.view([('',results.dtype)]*results.shape[1]), order=['f1']).view(results.dtype) 
-    print 'results', results
+    results = np.sort(results.view([('',results.dtype)]*results.shape[1]), axis=0, kind='mergesort', order=['f1']).view(results.dtype)
+    results = results[::-1] 
     return results.tolist()
 
 #########################################################################
@@ -170,22 +168,7 @@ def search():
         result = get_similar( doc_body = request.args.get('document_body') )
     else:
         raise InvalidUsage('bad request, please send valid document_id or document_body', status_code=400)
-    print 'result', result
     return jsonify( {'results': result } )
-
-# storage = open('corpus.pkl', 'rb')
-# corpus = pickle.load(storage)
-# storage.close()
-
-# tfidf = TfidfVectorizer(stop_words='english')
-# matrix = tfidf.fit_transform(pages[0:10])
 
 if __name__ == '__main__':
     app.run(debug = True, host="0.0.0.0")
-
-
-
-
-
-
-
