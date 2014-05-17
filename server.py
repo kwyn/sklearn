@@ -94,7 +94,6 @@ def train():
     storage.close()
     documents = get_raw_array(corpus)
     result_array = tfidf.fit_transform(documents)
-
     return result_array
 
 def get_similar(doc_id = None, doc_body = None):
@@ -111,6 +110,7 @@ def get_similar(doc_id = None, doc_body = None):
     document_array = np.array( get_doc_ids(), np.int32)[np.newaxis]
     document_array = document_array.T
     results = np.append(document_array, results, 1)
+    results = np.sort(results.view([('',results.dtype)]*results.shape[1]), order=['f1']).view(results.dtype) 
     print 'results', results
     return results.tolist()
 
