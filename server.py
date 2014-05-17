@@ -3,8 +3,8 @@
 from flask import Flask, jsonify, make_response, request, abort
 # from flask.ext.restful import reqparse, abort, Api, Resource
 import numpy as np
-# from sklearn.feature_extraction.text import TfidfVectorizer
-# from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 import os, shutil
 import logging
 import pickle
@@ -17,7 +17,7 @@ app = Flask(__name__)
 #Intilize psuedo database and tfidf service
 #########################################################################
 
-# tfidf = TfidfVectorizer(stop_words='english')
+tfidf = TfidfVectorizer(stop_words='english')
 
 #########################################################################
 #Helper methods
@@ -60,7 +60,6 @@ def add_documents(documents):
 def make_document_list():
     storage = open('corpus.pkl', 'rb')
     corpus = pickle.load(storage)
-    print len(corpus)
     results = corpus
     storage.close()
     return results
@@ -69,19 +68,51 @@ def get_document(document_id):
     storage = open('corpus.pkl', 'rb')
     corpus = pickle.load(storage)
     storage.close()
-    for document in corpus:
+    for document in corpus :
         if document['doc_id'] == document_id :
             return document
-        else :
-            raise InvalidUsage("Document not found", status_code=404)
+    raise InvalidUsage("Document not found", status_code=404)
 
-# def train():
-#     storage = open('corpus.pkl', 'rb')
-#     corpus = pickle.load(storage)
-#     matrix = tfidf.fit_transform(pages[0:10])
-#     storage.close()
+def get_raw_array(corpus):
+    raw_docs = list()
+    for document in corpus :
+        raw_docs.append(document['document_body'])
+    return raw_docs
 
-# matrix = tfidf.fit_transform(pages[0:10])
+def get_doc_ids():
+    storage = open('corpus.pkl', 'rb')
+    corpus = pickle.load(storage)
+    storage.close()
+    id_list = list()
+    for document in corpus :
+        id_list.append(document['doc_id'])
+    return id_list
+
+def train():
+    storage = open('corpus.pkl', 'rb')
+    corpus = pickle.load(storage)
+    storage.close()
+    documents = get_raw_array(corpus)
+    result_array = tfidf.fit_transform(documents)
+
+    return result_array
+
+def get_similar(doc_id = None, doc_body = None):
+    if doc_id is not None :
+        matrix = train()
+        doc = get_document(doc_id)
+        doc_vect = tfidf.transform([doc['document_body']]).todense()
+    elif doc_body is not None :
+        matrix = train()
+        doc_vect = tfidf.transform(doc_body)
+    print doc_vect
+    results = cosine_similarity(matrix, doc_vect)
+    print 'Similarity matix', results
+    document_array = np.array( get_doc_ids(), np.int32)[np.newaxis]
+    document_array = document_array.T
+    results = np.append(document_array, results, 1)
+    print 'results', results
+    return results.tolist()
 
 #########################################################################
 #Document handlers
@@ -101,7 +132,6 @@ def handle_invalid_usage(error):
 def index():
     return "Semantic Similarity as a Super Service SSAASS"
 
-
 #########################################################################
 #Document handlers
 #########################################################################
@@ -118,13 +148,13 @@ def get_document_list():
         document_ids = add_documents( request.json['documents'] )
         return jsonify( { 'document_ids': document_ids } )
     elif request.method == 'GET' :
-        return jsonify( { 'document_ids': make_document_list() } )
+        return jsonify( { 'documents': make_document_list() } )
 
 
 @app.route('/documents/<document_id>', methods = ['GET', 'DELETE'])
 def documents(document_id):
     if request.method == 'GET' :
-        return jsonify( { 'document_id_placeholder':  get_document(document_id) } )
+        return jsonify( { 'document':  get_document( document_id ) })
     elif request.method == 'DELETE' :
         return jsonify( { 'document_id_placeholder': document_id } )
 
@@ -134,14 +164,14 @@ def documents(document_id):
 
 @app.route('/search', methods = ['GET'])
 def search():
-    if request.form['document_id'] :
-        result = get_similar( doc_id = request.form['document_id'] )
-    elif request.form['document_body'] :
-        result = get_similar( doc_body = request.form['document_body'] )
+    if request.args.get('document_id') is not None :
+        result = get_similar( doc_id = request.args.get('document_id'))
+    elif request.args.get('document_body') is not None:
+        result = get_similar( doc_body = request.args.get('document_body') )
     else:
-        raise InvalidUsage('bad request, please send document_id or document_body', status_code=400)
+        raise InvalidUsage('bad request, please send valid document_id or document_body', status_code=400)
+    print 'result', result
     return jsonify( {'results': result } )
-
 
 # storage = open('corpus.pkl', 'rb')
 # corpus = pickle.load(storage)

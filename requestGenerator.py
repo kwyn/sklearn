@@ -16,11 +16,13 @@ def make_requests(pages):
   print len(pages)
   payload = { 'documents' : pages }
   #print payload
-  r = requests.post(apiurl+'/documents', data=json.dumps(payload), headers=headers)
-  print r.text
-  r = requests.get(apiurl+'/documents/1')
-  print 'document 1', r.text
+  # r = requests.post(apiurl+'/documents', data=json.dumps(payload), headers=headers)
+  # print r.text
   r = requests.get(apiurl+'/documents')
-  print 'document list' , r.text
-
+  print 'document list', r.text
+  r = requests.get(apiurl+'/documents/25')
+  print 'document 5' , r.text
+  parameters = { 'document_id' : '25'}
+  r = requests.get(apiurl+'/search', params=parameters)
+  print 'search', r.text
 make_requests(pages)
